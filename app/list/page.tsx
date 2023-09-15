@@ -55,7 +55,6 @@ export default async function Page() {
                   <Link
                     href={{
                       pathname: `/list/${data?.contest_type}${data?.contest_number}_${data?.problem_number}`,
-                      query: { id: data?.problem_id },
                     }}
                   >
                     <DocumentChartBarIcon className="h-5 w-5" />
