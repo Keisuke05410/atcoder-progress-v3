@@ -1,4 +1,12 @@
 export default function extractInfo(url: string) {
+  if (url === "") {
+    return {
+      status: "error",
+      data: {
+        message: "URL is empty.",
+      },
+    };
+  }
   if (url.match(/atcoder\.jp\/contests\/.*\/tasks\/.*/)) {
     const parts = url.split("/");
     const taskIndex = parts.indexOf("tasks");

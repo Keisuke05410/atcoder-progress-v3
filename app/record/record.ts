@@ -12,12 +12,6 @@ export default async function record(
   memo: string,
   code: string
 ): Promise<{ status: string; message: string }> {
-  if (URL === "") {
-    return {
-      status: "error",
-      message: "URLが空です",
-    };
-  }
   const info = extractInfo(URL);
   if (info.status === "success") {
     const supabase = createServerComponentClient({ cookies });

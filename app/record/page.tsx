@@ -37,6 +37,7 @@ const Page = () => {
         memo,
         editorRef.current.getValue()
       );
+      // 修正必要
       if (status === "success") {
         setShowSuccess(true);
         // 2秒後にsetShowSuccessをfalseにする
