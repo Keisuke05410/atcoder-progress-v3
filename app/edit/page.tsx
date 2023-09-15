@@ -7,77 +7,102 @@ import { Database } from "../../types/supabase";
 import { InformationCircleIcon } from "@heroicons/react/24/outline";
 import { Editor } from "@monaco-editor/react";
 import extractInfo from "../record/extractInfo";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 
-const Page = (props: { searchParams: { id: string } }) => {
-  // データを問題のデータを管理する変数
-  const [problem_data, setProblemData] =
+interface Props {
+  searchParams: {
+    id: string;
+  };
+}
+
+const Page: React.FC<Props> = ({ searchParams }) => {
+  const router = useRouter();
+  const [showError, setShowError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string>();
+  const [existError, setExistError] = useState(false);
+  const [problemData, setProblemData] =
     useState<Database["public"]["Functions"]["get_related_data"]["Returns"]>();
-
-  // code用。ほかの変数については、useStateで管理する
-  // code editorの使用上。
   const editorRef = useRef<any>();
+
   function handleEditorDidMount(editor: any, monaco: any) {
     editorRef.current = editor;
   }
 
-  // データ取得
   const supabase = createClientComponentClient();
   useEffect(() => {
-    const problem_id = props.searchParams.id;
+    const problemId = searchParams.id;
     supabase
-      .rpc("get_related_data", {
-        problem_id_param: problem_id,
-      })
+      .rpc("get_related_data", { problem_id_param: problemId })
       .then((res) => {
         setProblemData(res.data[0]);
-        console.log(problem_data);
       });
-  }, [supabase, props.searchParams.id]);
+  }, [supabase, searchParams.id]);
 
   const handleClick = async () => {
-    if (!problem_data) return;
-    const info = extractInfo(problem_data.problem_url);
+    setShowError(false);
+    if (!problemData) return;
+    const info = extractInfo(problemData.problem_url);
     if (info.status === "success") {
-      const { status, error } = await supabase.rpc(
+      const { status, data, error } = await supabase.rpc(
         "update_problem_and_detail",
         {
-          p_problem_id: problem_data.problem_id,
+          p_problem_id: problemData.problem_id,
           p_contest_number: info.data.contestNumber,
           p_contest_type: info.data.contestType,
-          p_correct: problem_data.correct,
-          p_created_at: problem_data.created_at,
-          p_preview: problem_data.preview,
+          p_correct: problemData.correct,
+          p_created_at: problemData.created_at,
+          p_preview: problemData.preview,
           p_problem_number: info.data.task,
-          p_problem_url: problem_data.problem_url,
+          p_problem_url: problemData.problem_url,
           p_updated_at: new Date().toISOString(),
-          p_user_id: problem_data.user_id,
+          p_user_id: problemData.user_id,
           p_code: editorRef.current.getValue(),
-          p_language: problem_data.language,
-          p_memo: problem_data.memo,
+          p_language: problemData.language,
+          p_memo: problemData.memo,
         }
       );
-      console.log(status);
-      console.log(error);
+      if (status === 200) {
+        if (data === "success") {
+          router.push("/record");
+        } else {
+          setExistError(true);
+          const { data } = await supabase
+            .from("problems")
+            .select("*")
+            .eq("problem_url", problemData.problem_url);
+          if (data) {
+            const exitURL = data[0].problem_url;
+            console.log(exitURL);
+          }
+        }
+      } else {
+        setShowError(true);
+        setErrorMessage(error?.message || "エラーが発生しました");
+      }
+    } else {
+      setShowError(true);
+      setErrorMessage(info.data.message);
     }
   };
 
   return (
     <>
       <Header />
-      <div className=" divider m-0 p-0 mb-10"></div>
-      {problem_data ? (
-        <div className=" flex flex-col h-full w-1/2 m-auto gap-5 justify-center">
+      <div className="divider m-0 p-0 mb-10"></div>
+      {problemData ? (
+        <div className="flex flex-col h-full w-1/2 m-auto gap-5 justify-center">
           <div className="form-control w-full">
             <label className="flex items-center">
-              <span className=" mr-3">問題のURL</span>
+              <span className="mr-3">問題のURL</span>
               <div className="badge badge-primary badge-outline">required</div>
             </label>
             <input
               type="text"
               placeholder="Type here"
-              value={problem_data.problem_url}
+              value={problemData.problem_url}
               onChange={(e) =>
-                setProblemData({ ...problem_data, problem_url: e.target.value })
+                setProblemData({ ...problemData, problem_url: e.target.value })
               }
               className="input input-bordered w-full"
             />
@@ -85,11 +110,11 @@ const Page = (props: { searchParams: { id: string } }) => {
           <div className="flex gap-3 mb-3">
             <input
               type="checkbox"
-              checked={problem_data.preview}
+              checked={problemData.preview}
               onChange={() => {
                 setProblemData({
-                  ...problem_data,
-                  preview: !problem_data.preview,
+                  ...problemData,
+                  preview: !problemData.preview,
                 });
               }}
               className="checkbox"
@@ -105,11 +130,11 @@ const Page = (props: { searchParams: { id: string } }) => {
           <div className="flex gap-3">
             <input
               type="checkbox"
-              checked={problem_data.correct}
+              checked={problemData.correct}
               onChange={() => {
                 setProblemData({
-                  ...problem_data,
-                  correct: !problem_data.correct,
+                  ...problemData,
+                  correct: !problemData.correct,
                 });
               }}
               className="checkbox checkbox-info"
@@ -122,9 +147,9 @@ const Page = (props: { searchParams: { id: string } }) => {
             <div className="collapse-content">
               <select
                 className="select select-sm select-bordered w-full max-w-xs mb-3"
-                value={problem_data.language}
+                value={problemData.language}
                 onChange={(e) =>
-                  setProblemData({ ...problem_data, language: e.target.value })
+                  setProblemData({ ...problemData, language: e.target.value })
                 }
               >
                 <option disabled value="">
@@ -135,8 +160,8 @@ const Page = (props: { searchParams: { id: string } }) => {
               </select>
               <div className="w-full h-80">
                 <Editor
-                  language={problem_data.language}
-                  defaultValue={problem_data.code}
+                  language={problemData.language}
+                  defaultValue={problemData.code}
                   onMount={handleEditorDidMount}
                 />
               </div>
@@ -148,15 +173,14 @@ const Page = (props: { searchParams: { id: string } }) => {
             <div className="collapse-content">
               <textarea
                 className="textarea textarea-bordered w-full h-full"
-                value={problem_data.memo}
+                value={problemData.memo}
                 onChange={(e) =>
-                  setProblemData({ ...problem_data, memo: e.target.value })
+                  setProblemData({ ...problemData, memo: e.target.value })
                 }
                 placeholder="メモ"
               ></textarea>
             </div>
           </div>
-          {/*
           {showError && (
             <div className="alert alert-warning">
               <svg
@@ -193,15 +217,15 @@ const Page = (props: { searchParams: { id: string } }) => {
               <div>
                 <h3 className="font-bold">すでにこの問題は解いています!</h3>
               </div>
-              <button className="btn btn-sm">See</button>
+              <Link
+                href={`/list/${problemData.contest_type}${problemData.contest_number}_${problemData.problem_number}`}
+                className="btn btn-sm"
+              >
+                See
+              </Link>
             </div>
-          )}*/}
-          <button
-            onClick={() => {
-              handleClick();
-            }}
-            className="btn btn-info"
-          >
+          )}
+          <button onClick={handleClick} className="btn btn-info">
             記録
           </button>
         </div>
