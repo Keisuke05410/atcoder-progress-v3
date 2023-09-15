@@ -126,6 +126,27 @@ export interface Database {
             };
             Returns: string;
           };
+      get_related_data: {
+        Args: {
+          problem_id_param: string;
+        };
+        Returns: {
+          code: string;
+          detail_id: string;
+          language: string;
+          memo: string;
+          problem_id: string;
+          contest_number: string;
+          contest_type: string;
+          correct: boolean;
+          created_at: string;
+          preview: boolean;
+          problem_number: string;
+          problem_url: string;
+          updated_at: string;
+          user_id: string;
+        };
+      };
     };
     Enums: {
       [_ in never]: never;
