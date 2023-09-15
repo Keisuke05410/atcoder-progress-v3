@@ -62,9 +62,14 @@ export default async function Page() {
                   </Link>
                 </td>
                 <td>
-                  <button>
+                  <Link
+                    href={{
+                      pathname: "/edit",
+                      query: { id: data?.problem_id },
+                    }}
+                  >
                     <PencilIcon className="h-5 w-5" />
-                  </button>
+                  </Link>
                 </td>
                 <td>
                   <a href={data?.problem_url}>
