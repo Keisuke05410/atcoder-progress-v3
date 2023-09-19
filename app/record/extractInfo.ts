@@ -1,4 +1,32 @@
-export default function extractInfo(url: string) {
+interface ExtractedInfo {
+  contestType: string;
+  contestNumber: string;
+  task: string;
+}
+
+interface ExtractInfoResultSuccess {
+  status: "success";
+  data: ExtractedInfo;
+}
+
+interface ExtractInfoResultError {
+  status: "error";
+  data: {
+    message: string;
+  };
+}
+
+type ExtractInfoResult = ExtractInfoResultSuccess | ExtractInfoResultError;
+
+export default function extractInfo(url: string): ExtractInfoResult {
+  if (url === "") {
+    return {
+      status: "error",
+      data: {
+        message: "URL is empty.",
+      },
+    };
+  }
   if (url.match(/atcoder\.jp\/contests\/.*\/tasks\/.*/)) {
     const parts = url.split("/");
     const taskIndex = parts.indexOf("tasks");

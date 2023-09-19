@@ -24,6 +24,7 @@ const Page = () => {
     editorRef.current = editor;
   }
 
+  // TODO エラーメッセージ関係修正
   async function handleClick() {
     setShowError(false);
     setExistError(false);
@@ -37,6 +38,7 @@ const Page = () => {
         memo,
         editorRef.current.getValue()
       );
+      // 修正必要
       if (status === "success") {
         setShowSuccess(true);
         // 2秒後にsetShowSuccessをfalseにする

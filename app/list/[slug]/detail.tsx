@@ -4,15 +4,25 @@ import { cookies } from "next/headers";
 import CodeBlock from "./codeBlock";
 import { Database } from "../../../types/supabase";
 import { CheckCircleIcon } from "@heroicons/react/24/outline";
+import parseContestInfo from "./parseContestInfo";
 
 type DetailProps = {
   problem_id: string;
 };
 
-const Detail = async ({ problem_id }: DetailProps) => {
+const Detail = async (props: { contestInfo: string }) => {
   const supabase = createServerComponentClient({ cookies });
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const contestInfo = parseContestInfo(props.contestInfo);
+
   const { data, error } = await supabase.rpc("get_related_data", {
-    problem_id_param: problem_id,
+    user_id_param: user?.id,
+    contest_type_param: contestInfo.contestType,
+    contest_number_param: contestInfo.contestNumber,
+    problem_number_param: contestInfo.task,
   });
 
   if (error) {
@@ -20,7 +30,7 @@ const Detail = async ({ problem_id }: DetailProps) => {
     return <div>error</div>;
   }
 
-  let problem_data: Database["public"]["Functions"]["get_related_data"]["Returns"] =
+  const problem_data: Database["public"]["Functions"]["get_related_data"]["Returns"] =
     data[0];
 
   return (
