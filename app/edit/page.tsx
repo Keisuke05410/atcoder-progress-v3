@@ -17,10 +17,12 @@ interface Props {
 }
 
 const Page: React.FC<Props> = ({ searchParams }) => {
-  const router = useRouter();
   const [showError, setShowError] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [showSaving, setShowSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string>();
   const [existError, setExistError] = useState(false);
+  const [exitURL, setExitURL] = useState<string>("");
   const [problemData, setProblemData] =
     useState<Database["public"]["Functions"]["get_related_data"]["Returns"]>();
   const editorRef = useRef<any>();
@@ -41,8 +43,14 @@ const Page: React.FC<Props> = ({ searchParams }) => {
 
   const handleClick = async () => {
     setShowError(false);
+    setShowSuccess(false);
+    setExistError(false);
+    setShowSaving(true);
     if (!problemData) return;
     const info = extractInfo(problemData.problem_url);
+    console.log(info);
+
+    if (!info) return;
     if (info.status === "success") {
       const { status, data, error } = await supabase.rpc(
         "update_problem_and_detail",
@@ -62,19 +70,21 @@ const Page: React.FC<Props> = ({ searchParams }) => {
           p_memo: problemData.memo,
         }
       );
+
       if (status === 200) {
-        if (data === "success") {
-          router.push("/record");
-        } else {
+        if (data === "Success") {
+          setShowSuccess(true);
+          setTimeout(() => {
+            setShowSuccess(false);
+          }, 3000);
+        } else if (
+          data ===
+          "Error: The new URL and user_id combination already exists in the database."
+        ) {
           setExistError(true);
-          const { data } = await supabase
-            .from("problems")
-            .select("*")
-            .eq("problem_url", problemData.problem_url);
-          if (data) {
-            const exitURL = data[0].problem_url;
-            console.log(exitURL);
-          }
+          setExitURL(
+            `/list/${info.data.contestType}${info.data.contestNumber}_${info.data.task}`
+          );
         }
       } else {
         setShowError(true);
@@ -84,6 +94,7 @@ const Page: React.FC<Props> = ({ searchParams }) => {
       setShowError(true);
       setErrorMessage(info.data.message);
     }
+    setShowSaving(false);
   };
 
   return (
@@ -181,6 +192,45 @@ const Page: React.FC<Props> = ({ searchParams }) => {
               ></textarea>
             </div>
           </div>
+          {/* 保存中のメッセージ */}
+          {showSaving && (
+            <div className="alert">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                className="stroke-info shrink-0 w-6 h-6"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                ></path>
+              </svg>
+              <span>保存中。。。</span>
+            </div>
+          )}
+          {/* 編集が成功したときのメッセージ */}
+          {showSuccess && (
+            <div className="alert alert-success">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="stroke-current shrink-0 h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              <span>編集が完了しました!</span>
+            </div>
+          )}
+          {/* エラーが発生したときのメッセージ */}
           {showError && (
             <div className="alert alert-warning">
               <svg
@@ -199,6 +249,7 @@ const Page: React.FC<Props> = ({ searchParams }) => {
               <span>Warning: {errorMessage}!</span>
             </div>
           )}
+          {/* すでにこの問題を解いているときのメッセージ */}
           {existError && (
             <div className="alert shadow-lg">
               <svg
@@ -217,10 +268,7 @@ const Page: React.FC<Props> = ({ searchParams }) => {
               <div>
                 <h3 className="font-bold">すでにこの問題は解いています!</h3>
               </div>
-              <Link
-                href={`/list/${problemData.contest_type}${problemData.contest_number}_${problemData.problem_number}`}
-                className="btn btn-sm"
-              >
+              <Link href={exitURL} className="btn btn-sm">
                 See
               </Link>
             </div>
