@@ -48,9 +48,7 @@ const Page: React.FC<Props> = ({ searchParams }) => {
     setShowSaving(true);
     if (!problemData) return;
     const info = extractInfo(problemData.problem_url);
-    console.log(info);
 
-    if (!info) return;
     if (info.status === "success") {
       const { status, data, error } = await supabase.rpc(
         "update_problem_and_detail",

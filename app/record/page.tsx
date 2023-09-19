@@ -6,8 +6,12 @@ import Editor from "@monaco-editor/react";
 import { InformationCircleIcon } from "@heroicons/react/24/solid";
 import record from "./record";
 import { useRouter } from "next/navigation";
+import extractInfo from "./extractInfo";
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import Link from "next/link";
 
 const Page = () => {
+  // TODO 問題情報の一括化
   const router = useRouter();
   const [language, setLanguage] = useState("");
   const [URL, setURL] = useState("");
@@ -17,8 +21,10 @@ const Page = () => {
   const editorRef = useRef<any>();
   const [showError, setShowError] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [showSaving, setShowSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [existError, setExistError] = useState(false);
+  const [exitURL, setExitURL] = useState("");
 
   function handleEditorDidMount(editor: any, monaco: any) {
     editorRef.current = editor;
@@ -27,39 +33,61 @@ const Page = () => {
   // TODO エラーメッセージ関係修正
   async function handleClick() {
     setShowError(false);
-    setExistError(false);
     setShowSuccess(false);
-    if (editorRef.current) {
-      const { status, message } = await record(
-        URL,
-        language,
-        isCorrect,
-        isMarked,
-        memo,
-        editorRef.current.getValue()
-      );
-      // 修正必要
-      if (status === "success") {
-        setShowSuccess(true);
-        // 2秒後にsetShowSuccessをfalseにする
-        setTimeout(() => {
-          setShowSuccess(false);
-        }, 2000);
-        setLanguage("");
-        setURL("");
-        setIsCorrect(true);
-        setIsMarked(false);
-        setMemo("");
-        editorRef.current.setValue("");
-      } else {
-        if (message !== "Already exists") {
-          setErrorMessage(message);
-          setShowError(true);
-        } else {
-          setExistError(true);
+    setExistError(false);
+    setShowSaving(true);
+    const info = extractInfo(URL);
+    if (info.status === "success") {
+      const supabase = createClientComponentClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      const { status, data, error } = await supabase.rpc(
+        "add_problem_and_detail",
+        {
+          p_user_id: user?.id,
+          p_contest_number: info.data.contestNumber,
+          p_contest_type: info.data.contestType,
+          p_correct: isCorrect,
+          p_created_at: new Date().toISOString(),
+          p_preview: isMarked,
+          p_problem_number: info.data.task,
+          p_problem_url: URL,
+          p_updated_at: new Date().toISOString(),
+          p_code: editorRef.current.getValue(),
+          p_language: language,
+          p_memo: memo,
         }
+      );
+      if (status === 200) {
+        if (data === "Success") {
+          setShowSuccess(true);
+          setTimeout(() => {
+            setShowSuccess(false);
+            setURL("");
+            setIsCorrect(true);
+            setIsMarked(false);
+            setMemo("");
+            editorRef.current.setValue("");
+          }, 2000);
+        } else if (data === "Already exists") {
+          setExistError(true);
+          setExitURL(
+            `/list/${info.data.contestType}${info.data.contestNumber}_${info.data.task}`
+          );
+        } else {
+          setShowError(true);
+          setErrorMessage(error?.message || "Unknown error");
+        }
+      } else {
+        setShowError(true);
+        setErrorMessage(error?.message || "Unknown error");
       }
+    } else {
+      setShowError(true);
+      setErrorMessage(info.data.message);
     }
+    setShowSaving(false);
   }
 
   return (
@@ -74,6 +102,7 @@ const Page = () => {
           </label>
           <input
             type="text"
+            value={URL}
             placeholder="Type here"
             onChange={(e) => setURL(e.target.value)}
             className="input input-bordered w-full"
@@ -139,6 +168,45 @@ const Page = () => {
             ></textarea>
           </div>
         </div>
+        {/* 保存中のメッセージ */}
+        {showSaving && (
+          <div className="alert">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              className="stroke-info shrink-0 w-6 h-6"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              ></path>
+            </svg>
+            <span>保存中。。。</span>
+          </div>
+        )}
+        {/* 保存が成功したときのメッセージ */}
+        {showSuccess && (
+          <div className="alert alert-success">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="stroke-current shrink-0 h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            <span>保存が完了しました!</span>
+          </div>
+        )}
+        {/* エラーが発生したとき */}
         {showError && (
           <div className="alert alert-warning">
             <svg
@@ -157,6 +225,7 @@ const Page = () => {
             <span>Warning: {errorMessage}!</span>
           </div>
         )}
+        {/* すでに問題を解いている場合 */}
         {existError && (
           <div className="alert shadow-lg">
             <svg
@@ -175,8 +244,9 @@ const Page = () => {
             <div>
               <h3 className="font-bold">すでにこの問題は解いています!</h3>
             </div>
-            {/* 問題詳細ページに遷移 */}
-            <button className="btn btn-sm">See</button>
+            <Link href={exitURL} className="btn btn-sm">
+              See
+            </Link>
           </div>
         )}
         <button
