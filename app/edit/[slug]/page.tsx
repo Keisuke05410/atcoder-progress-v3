@@ -1,14 +1,16 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import Header from "../components/Header";
+import Header from "../../components/Header";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
-import { Database } from "../../types/supabase";
+import { Database } from "../../../types/supabase";
 import { InformationCircleIcon } from "@heroicons/react/24/outline";
 import { Editor } from "@monaco-editor/react";
-import extractInfo from "../record/extractInfo";
+import extractInfo from "../../record/extractInfo";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import parseContestInfo from "../../list/[slug]/parseContestInfo";
+import { problem_data_type } from "../../list/[slug]/detail";
 
 interface Props {
   searchParams: {
@@ -16,15 +18,14 @@ interface Props {
   };
 }
 
-const Page: React.FC<Props> = ({ searchParams }) => {
+const Page = (props: { params: { slug: string } }) => {
   const [showError, setShowError] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [showSaving, setShowSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string>();
   const [existError, setExistError] = useState(false);
   const [exitURL, setExitURL] = useState<string>("");
-  const [problemData, setProblemData] =
-    useState<Database["public"]["Functions"]["get_related_data"]["Returns"]>();
+  const [problemData, setProblemData] = useState<problem_data_type>();
   const editorRef = useRef<any>();
 
   function handleEditorDidMount(editor: any, monaco: any) {
@@ -32,14 +33,28 @@ const Page: React.FC<Props> = ({ searchParams }) => {
   }
 
   const supabase = createClientComponentClient();
+
   useEffect(() => {
-    const problemId = searchParams.id;
-    supabase
-      .rpc("get_related_data", { problem_id_param: problemId })
-      .then((res) => {
-        setProblemData(res.data[0]);
-      });
-  }, [supabase, searchParams.id]);
+    const getData = async () => {
+      const contestInfo = parseContestInfo(props.params.slug);
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      supabase
+        .rpc("get_related_data", {
+          user_id_param: user?.id,
+          contest_type_param: contestInfo.contestType,
+          contest_number_param: contestInfo.contestNumber,
+          problem_number_param: contestInfo.task,
+        })
+        .then((res) => {
+          setProblemData(res.data[0]);
+        });
+    };
+    getData();
+  }, [props.params.slug, supabase]);
+
+  if (!problemData) return;
 
   const handleClick = async () => {
     setShowError(false);
@@ -111,7 +126,10 @@ const Page: React.FC<Props> = ({ searchParams }) => {
               placeholder="Type here"
               value={problemData.problem_url}
               onChange={(e) =>
-                setProblemData({ ...problemData, problem_url: e.target.value })
+                setProblemData({
+                  ...problemData,
+                  problem_url: e.target.value,
+                })
               }
               className="input input-bordered w-full"
             />
