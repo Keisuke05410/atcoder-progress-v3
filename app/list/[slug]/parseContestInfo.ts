@@ -7,6 +7,6 @@ export default function parseContestInfo(info: string) {
   return {
     contestType,
     contestNumber,
-    task,
+    task: "_" + task,
   };
 }

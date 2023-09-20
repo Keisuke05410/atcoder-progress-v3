@@ -40,7 +40,7 @@ export default function extractInfo(url: string): ExtractInfoResult {
       data: {
         contestType,
         contestNumber,
-        task: taskNumber,
+        task: "_" + taskNumber,
       },
     };
   } else {

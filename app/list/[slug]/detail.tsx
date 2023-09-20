@@ -26,7 +26,6 @@ const Detail = async (props: { contestInfo: string }) => {
   });
 
   if (error) {
-    console.log(error);
     return <div>error</div>;
   }
 
@@ -43,7 +42,8 @@ const Detail = async (props: { contestInfo: string }) => {
           <CheckCircleIcon className="w-8 h-8 text-success mr-2" />
           <div className="text-4xl font-bold">
             {problem_data.contest_type}
-            {problem_data.contest_number}_{problem_data.problem_number}
+            {problem_data.contest_number}
+            {problem_data.problem_number}
           </div>
         </div>
       ) : (
@@ -51,7 +51,8 @@ const Detail = async (props: { contestInfo: string }) => {
           <CheckCircleIcon className="h-8 w-8 text-error mr-2" />
           <div className="text-4xl font-bold">
             {problem_data.contest_type}
-            {problem_data.contest_number}_{problem_data.problem_number}
+            {problem_data.contest_number}
+            {problem_data.problem_number}
           </div>
         </div>
       )}
