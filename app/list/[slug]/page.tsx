@@ -4,10 +4,8 @@ import useSWR from "swr";
 import Detail from "./detail";
 import Header from "../../components/Header";
 
+// TODO 削除、編集ボタン追加
 const Page = (props: { params: { slug: string } }) => {
-  console.log(props.params.slug);
-
-  // TODO param受け取る必要ある？
   return (
     <div>
       <Header />

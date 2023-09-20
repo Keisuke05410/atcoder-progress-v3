@@ -12,6 +12,7 @@ import Link from "next/link";
 
 const Page = () => {
   // TODO 問題情報の一括化
+  // TODO 問題解いたボタン
   const router = useRouter();
   const [language, setLanguage] = useState("");
   const [URL, setURL] = useState("");
@@ -30,7 +31,6 @@ const Page = () => {
     editorRef.current = editor;
   }
 
-  // TODO エラーメッセージ関係修正
   async function handleClick() {
     setShowError(false);
     setShowSuccess(false);

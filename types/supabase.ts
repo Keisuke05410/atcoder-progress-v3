@@ -91,61 +91,107 @@ export interface Database {
       [_ in never]: never;
     };
     Functions: {
-      add_problem_and_detail:
+      add_problem_and_detail: {
+        Args: {
+          p_user_id: string;
+          p_contest_number: string;
+          p_contest_type: string;
+          p_correct: boolean;
+          p_created_at: string;
+          p_preview: boolean;
+          p_problem_number: string;
+          p_problem_url: string;
+          p_updated_at: string;
+          p_code: string;
+          p_language: string;
+          p_memo: string;
+        };
+        Returns: string;
+      };
+      get_related_data:
         | {
             Args: {
-              p_user_id: string;
-              p_contest_number: string;
-              p_contest_type: string;
-              p_correct: boolean;
-              p_created_at: string;
-              p_preview: boolean;
-              p_problem_numbe: string;
-              p_problem_url: string;
-              p_updated_at: string;
-              p_code: string;
-              p_language: string;
-              p_memo: string;
+              contest_type_param: string;
+              contest_number_param: string;
+              problem_number_param: string;
+              user_id_param: string;
             };
-            Returns: string;
+            Returns: {
+              code: string;
+              detail_id: string;
+              language: string;
+              memo: string;
+              problem_id: string;
+              contest_number: string;
+              contest_type: string;
+              correct: boolean;
+              created_at: string;
+              preview: boolean;
+              problem_number: string;
+              problem_url: string;
+              updated_at: string;
+              user_id: string;
+            }[];
           }
         | {
             Args: {
-              p_user_id: string;
-              p_contest_number: string;
-              p_contest_type: string;
-              p_correct: boolean;
-              p_created_at: string;
-              p_preview: boolean;
-              p_problem_number: string;
-              p_problem_url: string;
-              p_updated_at: string;
-              p_code: string;
-              p_language: string;
-              p_memo: string;
+              problem_id_param: string;
             };
-            Returns: string;
+            Returns: {
+              code: string;
+              detail_id: string;
+              language: string;
+              memo: string;
+              problem_id: string;
+              contest_number: string;
+              contest_type: string;
+              correct: boolean;
+              created_at: string;
+              preview: boolean;
+              problem_number: string;
+              problem_url: string;
+              updated_at: string;
+              user_id: string;
+            }[];
           };
-      get_related_data: {
+      search_problems: {
         Args: {
-          problem_id_param: string;
+          optionmarked: boolean;
+          optioncorrect: boolean;
+          optiontoday: boolean;
+          optionsearch: string;
+          optionsort: boolean;
         };
         Returns: {
-          code: string;
-          detail_id: string;
-          language: string;
-          memo: string;
-          problem_id: string;
           contest_number: string;
           contest_type: string;
           correct: boolean;
           created_at: string;
-          preview: boolean;
+          preview: boolean | null;
+          problem_id: string;
           problem_number: string;
           problem_url: string;
           updated_at: string;
           user_id: string;
+        }[];
+      };
+      update_problem_and_detail: {
+        Args: {
+          p_problem_id: string;
+          p_contest_number: string;
+          p_contest_type: string;
+          p_correct: boolean;
+          p_created_at: string;
+          p_preview: boolean;
+          p_problem_number: string;
+          p_problem_url: string;
+          p_updated_at: string;
+          p_user_id: string;
+          p_code: string;
+          p_language: string;
+          p_memo: string;
         };
+        Returns: string;
       };
     };
     Enums: {
