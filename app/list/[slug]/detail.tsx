@@ -1,3 +1,5 @@
+"use server";
+
 import React from "react";
 import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
 import { cookies } from "next/headers";
@@ -9,6 +11,9 @@ import parseContestInfo from "./parseContestInfo";
 type DetailProps = {
   problem_id: string;
 };
+
+export type problem_data_type =
+  Database["public"]["Functions"]["get_related_data"]["Returns"][0];
 
 const Detail = async (props: { contestInfo: string }) => {
   const supabase = createServerComponentClient({ cookies });
@@ -29,8 +34,8 @@ const Detail = async (props: { contestInfo: string }) => {
     return <div>error</div>;
   }
 
-  const problem_data: Database["public"]["Functions"]["get_related_data"]["Returns"] =
-    data[0];
+  const problem_data: problem_data_type = data[0];
+  console.log(problem_data);
 
   return (
     <div className="w-1/2 m-auto flex flex-col gap-5">
