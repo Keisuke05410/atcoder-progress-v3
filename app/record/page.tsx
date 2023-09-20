@@ -73,7 +73,7 @@ const Page = () => {
         } else if (data === "Already exists") {
           setExistError(true);
           setExitURL(
-            `/list/${info.data.contestType}${info.data.contestNumber}_${info.data.task}`
+            `/list/${info.data.contestType}${info.data.contestNumber}${info.data.task}`
           );
         } else {
           setShowError(true);

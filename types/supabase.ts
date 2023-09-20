@@ -108,52 +108,39 @@ export interface Database {
         };
         Returns: string;
       };
-      get_related_data:
-        | {
-            Args: {
-              contest_type_param: string;
-              contest_number_param: string;
-              problem_number_param: string;
-              user_id_param: string;
-            };
-            Returns: {
-              code: string;
-              detail_id: string;
-              language: string;
-              memo: string;
-              problem_id: string;
-              contest_number: string;
-              contest_type: string;
-              correct: boolean;
-              created_at: string;
-              preview: boolean;
-              problem_number: string;
-              problem_url: string;
-              updated_at: string;
-              user_id: string;
-            }[];
-          }
-        | {
-            Args: {
-              problem_id_param: string;
-            };
-            Returns: {
-              code: string;
-              detail_id: string;
-              language: string;
-              memo: string;
-              problem_id: string;
-              contest_number: string;
-              contest_type: string;
-              correct: boolean;
-              created_at: string;
-              preview: boolean;
-              problem_number: string;
-              problem_url: string;
-              updated_at: string;
-              user_id: string;
-            }[];
-          };
+      get_related_data: {
+        Args: {
+          contest_type_param: string;
+          contest_number_param: string;
+          problem_number_param: string;
+          user_id_param: string;
+        };
+        Returns: {
+          code: string;
+          detail_id: string;
+          language: string;
+          memo: string;
+          problem_id: string;
+          contest_number: string;
+          contest_type: string;
+          correct: boolean;
+          created_at: string;
+          preview: boolean;
+          problem_number: string;
+          problem_url: string;
+          updated_at: string;
+          user_id: string;
+        }[];
+      };
+      get_single_data: {
+        Args: {
+          contest_type_param: string;
+          contest_number_param: string;
+          problem_number_param: string;
+          user_id_param: string;
+        };
+        Returns: Record<string, unknown>[];
+      };
       search_problems: {
         Args: {
           optionmarked: boolean;

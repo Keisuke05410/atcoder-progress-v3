@@ -50,11 +50,11 @@ export default function Page() {
   };
   useEffect(() => {
     handleData({
-      optionMarked,
-      optionCorrect,
-      optionToday,
-      optionSearch,
-      optionSort,
+      optionMarked: null,
+      optionCorrect: null,
+      optionToday: null,
+      optionSearch: "",
+      optionSort: null,
     });
   }, []);
 
